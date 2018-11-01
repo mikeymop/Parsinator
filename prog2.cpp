@@ -1,4 +1,3 @@
-/* Michael DeFrancesco November 2018 */
 #include <iostream>
 #include <fstream>
 #include <string.h>
@@ -17,7 +16,17 @@ return Token(Done, "", lineNum)
 -allids a list of the lexemes for all identifiers printed in
     alphabetical order
 filename read from the filename; otherwise read from standard in
+
+getNextToken(istream * ...)
+istream *in;
+in = & cin;
+    or
+in = & some ifstream;
+
 */
+
+
+
 
 int main(int argc, char* argv[]) {
     //args
@@ -48,13 +57,13 @@ int main(int argc, char* argv[]) {
         //Done: arg tester
 
         if(arg1[0] == '-') {
-            if(arg1 == "-v") {
+            if(arg1 == "-v" || arg1 == "--verbose") {
                 //do -v
                 v = true;
-            } else if(arg1 == "-sum") {
+            } else if(arg1 == "-sum" || arg1 == "--summary" || arg1 == "-s") {
                 //do sum
                 sum = true;
-            } else if(arg1 == "-allids") {
+            } else if(arg1 == "-allids" || arg1 == "-a") {
                 //do allids
                 allids = true;
             } else {
