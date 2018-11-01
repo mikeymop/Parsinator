@@ -30,8 +30,44 @@ static std::map<TokenType, std::string> TokenMap {
     {RPAREN, "RPAREN"},
     {SC, "SC"},
     {ERR, "ERR"},
-    {DONE, "DONE"}
+    {DONE, "DONE"},
 };
+
+/*static std::map<std::string, TokenType> identures {
+    //cannot use the tokenmap, but need to eval keywords
+    {"var", VAR},
+    {"set", SET},
+    {"print", PRINT},
+    {"repeat", REPEAT}
+};
+//I have to treat idents diff, since I cant read the ident tokens in the TokenMap
+Token identificator(const string& lexeme, int lineNum) {
+    TokenType tt = IDENT;
+
+    auto i = identures.find(lexeme); //dealing with these types was hell
+    tt = i->second; // sets the tokentype
+    return Token(tt, lexeme, lineNum);
+}*/
+
+Token identificator(const string& lexeme, int lineNum) {
+    TokenType tt = IDENT;
+    if(lexeme == "print") {
+        tt = PRINT;
+    }
+    if(lexeme == "if") {
+        tt = IF;
+    }
+    if(lexeme == "then") {
+        tt = THEN;
+    }
+    if(lexeme == "true") {
+        tt = TRUE;
+    }
+    if(lexeme == "false") {
+        tt = FALSE;
+    }
+    return Token(tt, lexeme, lineNum);
+}
 //redir istream to cout
 ostream& operator<<(ostream& out, const Token &tok) {
     TokenType tt = tok.GetTokenType();
@@ -47,10 +83,10 @@ ostream& operator<<(ostream& out, const Token &tok) {
 Token getNextToken(istream *in, int *lineNum) {
     //TokenType tt = tok.GetTokenType(); //test tok
     //from slide
-    enum LexState {BEGIN, INID, INSTRING, INCOMMENT, /* do more later */};
-    string lexeme;
-    char ch;
-    LexState state = BEGIN;
+    enum LexState {BEGIN, INID, INSTRING, ININT, INCOMMENT, /* do more later */};
+    string lexeme; //the lexeme we're building
+    char ch; //the char we're working with
+    LexState state = BEGIN; //ensure we start at the top of the switch
     
     //deref instream, istream::peek didn't work?
     while(in->get(ch)) {
@@ -71,7 +107,7 @@ Token getNextToken(istream *in, int *lineNum) {
                 if(isalpha(ch)) {
                     state = INID;
                 } else if(isdigit(ch)) {
-                    ;//state = ININT;
+                    state = ININT;
                 } else if( ch == '"' ) {
                     //string stuff
                     state = INSTRING;
@@ -97,22 +133,26 @@ Token getNextToken(istream *in, int *lineNum) {
                             //two char ops are strange
                             lexeme.push_back(ch);
                             ch = in->peek();
-                            lexeme.push_back(ch);
                             if(ch == '=') {
+                                lexeme.push_back(ch);
+                                in->get(ch);
                                 tt = EQ;
-                            } else if(' ') {
-                                tt = ASSIGN;
                             } else {
-                                return Token(ERR, lexeme, *lineNum);
+                                tt = ASSIGN;
                             }
                             break;
                         case '!':
                         //two char ops are strange
                             lexeme.push_back(ch);
                             ch = in->peek();
-                            lexeme.push_back(ch);
                             if(ch == '=') {
+                                lexeme.push_back(ch);
+                                in->get(ch);
                                 tt = NEQ;
+                            } else if(ch == '\n') {
+                                (*lineNum)++;
+                                lexeme.pop_back();
+                                return Token(ERR, lexeme, *lineNum);
                             } else {
                                 //tf is that?
                                 return Token(ERR, lexeme, *lineNum);
@@ -122,8 +162,9 @@ Token getNextToken(istream *in, int *lineNum) {
                             //two char ops are strange
                             lexeme.push_back(ch);
                             ch = in->peek();
-                            lexeme.push_back(ch);
                             if(ch == '=') {
+                                lexeme.push_back(ch);
+                                in->get(ch);
                                 tt = LEQ;
                             }
                             tt = LT;
@@ -132,8 +173,9 @@ Token getNextToken(istream *in, int *lineNum) {
                             //two char ops are strange
                             lexeme.push_back(ch);
                             ch = in->peek();
-                            lexeme.push_back(ch);
                             if(ch == '=') {
+                                lexeme.push_back(ch);
+                                in->get(ch);
                                 tt = GEQ;
                             }
                             tt = LT;
@@ -142,8 +184,9 @@ Token getNextToken(istream *in, int *lineNum) {
                             //two char ops are strange
                             lexeme.push_back(ch);
                             ch = in->peek();
-                            lexeme.push_back(ch);
                             if(ch == '&') {
+                                lexeme.push_back(ch);
+                                in->get(ch);
                                 tt = LOGICAND;
                             }
                             tt = LT;
@@ -152,11 +195,11 @@ Token getNextToken(istream *in, int *lineNum) {
                             //two char ops are strange
                             lexeme.push_back(ch);
                             ch = in->peek();
-                            lexeme.push_back(ch);
                             if(ch == '|') {
+                                lexeme.push_back(ch);
+                                in->get(ch);
                                 tt = LOGICOR;
                             }
-                            tt = LT;
                             break;
                         case '(':
                             //two char ops are strange
@@ -180,13 +223,29 @@ Token getNextToken(istream *in, int *lineNum) {
             case INID:
                 if(isalpha(ch) || isdigit(ch)) {
                     lexeme += ch;
+                    break;
                 } else {
-                    if(ch == '\n')
-                        in->putback(ch);
-                }
-                return Token(IDENT, lexeme, *lineNum);
-                //break; for later
+                    if(ch == '\n') {
+                        (*lineNum)--; //have to -1 rq incase we print an err on this lexeme
+                    }
+                    in->putback(ch);
+                    return identificator(lexeme, *lineNum);
+                } //identify keywords
             //finish strings
+            case ININT:
+                if(isdigit(ch)) {
+                    lexeme += ch;
+                    break;
+                } else if(isalpha(ch)) {
+                    lexeme += ch;
+                    return Token(ERR, lexeme, *lineNum);
+                } else {
+                    if(ch == '\n') {
+                        (*lineNum)--; //it saw the \n so roll bk
+                    }
+                    in->putback(ch);
+                    return Token(ICONST, lexeme, *lineNum);
+                }
             case INSTRING:
                 lexeme += ch;
                 if(ch == '"') {
