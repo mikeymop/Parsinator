@@ -33,21 +33,8 @@ static std::map<TokenType, std::string> TokenMap {
     {DONE, "DONE"},
 };
 
-/*static std::map<std::string, TokenType> identures {
-    //cannot use the tokenmap, but need to eval keywords
-    {"var", VAR},
-    {"set", SET},
-    {"print", PRINT},
-    {"repeat", REPEAT}
-};
-//I have to treat idents diff, since I cant read the ident tokens in the TokenMap
-Token identificator(const string& lexeme, int lineNum) {
-    TokenType tt = IDENT;
-
-    auto i = identures.find(lexeme); //dealing with these types was hell
-    tt = i->second; // sets the tokentype
-    return Token(tt, lexeme, lineNum);
-}*/
+//I have to treat idents diff, since I cant read the ident 
+//tokens in the TokenMap
 
 Token identificator(const string& lexeme, int lineNum) {
     TokenType tt = IDENT;
@@ -81,14 +68,13 @@ ostream& operator<<(ostream& out, const Token &tok) {
 }
 
 Token getNextToken(istream *in, int *lineNum) {
-    //TokenType tt = tok.GetTokenType(); //test tok
     //from slide
     enum LexState {BEGIN, INID, INSTRING, ININT, INCOMMENT, /* do more later */};
     string lexeme; //the lexeme we're building
     char ch; //the char we're working with
-    LexState state = BEGIN; //ensure we start at the top of the switch
+    LexState state = BEGIN; //sets the start node of FSM
     
-    //deref instream, istream::peek didn't work?
+    //deref instream
     while(in->get(ch)) {
         //grab chars / close lines
         if(ch == '\n') {
@@ -96,20 +82,19 @@ Token getNextToken(istream *in, int *lineNum) {
         }
         //lexemes for strings and declarations
         switch(state) {
-            //begin case
+            //begin case starts the FSM
             case BEGIN:
                 if(isspace(ch)) {
                     continue; //move on to next word if you see a space
                 }
                 
-                lexeme = ch; //save the char
-                //Identifier stuff
+                lexeme = ch; //adds char to lexeme
+                //Identify TokenType
                 if(isalpha(ch)) {
                     state = INID;
                 } else if(isdigit(ch)) {
                     state = ININT;
                 } else if( ch == '"' ) {
-                    //string stuff
                     state = INSTRING;
                 } else if( ch == '#') {
                     state = INCOMMENT;
@@ -154,7 +139,6 @@ Token getNextToken(istream *in, int *lineNum) {
                                 lexeme.pop_back();
                                 return Token(ERR, lexeme, *lineNum);
                             } else {
-                                //tf is that?
                                 return Token(ERR, lexeme, *lineNum);
                             }
                             break;
@@ -214,11 +198,10 @@ Token getNextToken(istream *in, int *lineNum) {
                                 break;                 
                     } //end opcase
                     return Token(tt, lexeme, *lineNum);
-                    //cant return in case statements
+                    //cant return in case statement
                     
-                } //end stringbs
+                } //Next state determined by this point
                 break;
-                //end begin case
             //identifiers
             case INID:
                 if(isalpha(ch) || isdigit(ch)) {
@@ -226,12 +209,14 @@ Token getNextToken(istream *in, int *lineNum) {
                     break;
                 } else {
                     if(ch == '\n') {
-                        (*lineNum)--; //have to -1 rq incase we print an err on this lexeme
+                        (*lineNum)--; //have to -1 incase we print
+                                     // an err on this lexeme. The next 
+                                     // iteration will handle linenum for me.
                     }
                     in->putback(ch);
                     return identificator(lexeme, *lineNum);
-                } //identify keywords
-            //finish strings
+                } //identifies keywords
+
             case ININT:
                 if(isdigit(ch)) {
                     lexeme += ch;
@@ -249,6 +234,7 @@ Token getNextToken(istream *in, int *lineNum) {
             case INSTRING:
                 lexeme += ch;
                 if(ch == '"') {
+                    //removes the \"
                     lexeme = lexeme.substr(1, lexeme.length()-2);
                     return Token(SCONST, lexeme, *lineNum);
                 }
@@ -264,7 +250,7 @@ Token getNextToken(istream *in, int *lineNum) {
         }
     }
     
-    if( in->eof() )
+    if( in->eof() ) //streams end with `eof`
         return Token(DONE, "", *lineNum);
     
     return Token(ERR, lexeme, *lineNum);

@@ -1,3 +1,4 @@
+/* Michael DeFrancesco November 2018 */
 #include <iostream>
 #include <fstream>
 #include <string.h>
@@ -16,17 +17,7 @@ return Token(Done, "", lineNum)
 -allids a list of the lexemes for all identifiers printed in
     alphabetical order
 filename read from the filename; otherwise read from standard in
-
-getNextToken(istream * ...)
-istream *in;
-in = & cin;
-    or
-in = & some ifstream;
-
 */
-
-
-
 
 int main(int argc, char* argv[]) {
     //args
