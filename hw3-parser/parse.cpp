@@ -222,7 +222,7 @@ ParseTree *CompareExpr(istream *in, int *line) {
     // HANDLE OP
     while (true) {
     	Token t = Parser::GetNextToken(in, line);
-		//{ (EQ | NEQ | GT | GEQ | LT | LEQ) 
+//{ (EQ | NEQ | GT | GEQ | LT | LEQ) 
     	if(t != EQ && t != NEQ && t != LT && t != LEQ && t != GT && t != GEQ) {
     		Parser::PushBackToken(t);
     		return t1;
@@ -236,7 +236,7 @@ ParseTree *CompareExpr(istream *in, int *line) {
     		return 0;
     	}
     	//(EQ | NEQ | GT | GEQ | LT | LEQ)
-    	//return op: Token(tt, lexeme, int)
+    	//return right leaf Token(tt, lexeme, int)
     	switch(t.GetTokenType()) {
     		case EQ:
     			return new EqExpr(t.GetLinenum(), t1, t2);
@@ -365,7 +365,8 @@ ParseTree *Primary(istream *in, int *line) {
     		return new BoolConst(t, FALSE);
     	case LPAREN:
     	{
-    		Token t = Parser::GetNextToken(in, line);
+    		ParseTree *ex = Expr(in, line); //only accepts Expr
+            Token t = Parser::GetNextToken(in, line);
 			
 			if( t != RPAREN ) {
 				ParseError(t.GetLinenum(), "Syntax error right paren expected");
@@ -378,34 +379,6 @@ ParseTree *Primary(istream *in, int *line) {
     	default:
     		return 0; //empty branch
     }
-    /*if(t == IDENT){
-    	identct++;
-    	tempWord = t.GetLexeme();
-    	idents[tempWord]++;
-        return new Ident(t);
-    } else if(t == ICONST) {
-        return new IConst(t);
-    } else if(t == SCONST) {
-        return new SConst(t);
-    } else if(t == TRUE) {
-        return new BoolConst(t, TRUE);
-    } else if(t == FALSE) {
-        return new BoolConst(t, FALSE);
-    } else if(t == LPAREN) {
-        ParseTree *ex = Expr(in, line); //only accepts Expr
-        // Expr { RPAREN }
-        Token t = Parser::GetNextToken(in, line);
-		if( t != RPAREN ) {
-			ParseError(t.GetLinenum(), "Syntax error right paren expected");
-			Parser::PushBackToken(t);
-			return 0;
-		} else {
-			return ex;
-		}
-	} else {
-		ParseError(t.GetLinenum(), "Syntax error primary expected");
-	}   
-    return 0; //empty branch*/
 
 }//Parsetree
 
