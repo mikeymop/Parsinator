@@ -15,6 +15,9 @@ Index:
         MINUS
         STAR
         SLASH
+    Quantities:
+        LPAREN
+        RPAREN
     Int:
         ICONST([1-.*])
     "String":
