@@ -3,7 +3,7 @@
 ### Usage
 The parser can be plugged into for diagnosing by reimplementing the cin redirect from hw2.
 
-Look at *.correct in the cases from hw2 to get a gist of how the lexer spits out tokens. The token return type is the token type in tokens.h
+Look at `./cases/*.correct` in the cases from hw2 to get a gist of how the lexer spits out tokens. The token return type is the token type in tokens.h
 
 ```
 SYNOPSIS: ./prog3 [filename]
