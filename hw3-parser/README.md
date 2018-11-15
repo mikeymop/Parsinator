@@ -18,6 +18,18 @@ Index:
     Quantities:
         LPAREN
         RPAREN
+    Comparison Operators:
+        EQ
+	    NEQ
+	    LT
+	    LEQ
+	    GT
+	    GEQ
+    Logical Operators:
+        LOGICAND,
+        LOGICOR,
+        LPAREN,
+        RPAREN,
     Int:
         ICONST([1-.*])
     "String":
