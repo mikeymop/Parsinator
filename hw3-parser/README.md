@@ -3,7 +3,7 @@
 ### Usage
 The parser can be plugged into for diagnosing by reimplementing the cin redirect from hw2.
 
-Look at `./cases/*.correct` in the cases from hw2 to get a gist of how the lexer spits out tokens. The token return type is the token type in tokens.h
+Look at `./cases/*.correct` in the cases from hw2, or `tokens.h`, to get a gist of how the lexer spits out tokens. The token return type is the token type in tokens.h
 
 ```
 SYNOPSIS: ./prog3 [filename]
@@ -20,11 +20,11 @@ Index:
         RPAREN
     Comparison Operators:
         EQ
-	    NEQ
-	    LT
-	    LEQ
-	    GT
-	    GEQ
+        NEQ
+        LT
+        LEQ
+        GT
+        GEQ
     Logical Operators:
         LOGICAND,
         LOGICOR,
