@@ -62,11 +62,12 @@ void ParseError(int line, string msg) {
 	++error_count;
 	cout << line << ": " << msg << endl;
 }
-
+// Prog := Slist
 ParseTree *Prog(istream *in, int *line) {
+	//:= Slist
 	ParseTree *sl = Slist(in, line);
 
-	if( sl == 0 )
+	if( sl == 0 ) //empty branch
 		ParseError(*line, "No statements in program");
 
 	if( error_count )
@@ -74,24 +75,25 @@ ParseTree *Prog(istream *in, int *line) {
 
 	return sl;
 }
-
+//Slist := Stmt SC { Slist }
 // Slist is a Statement followed by a Statement List
 ParseTree *Slist(istream *in, int *line) {
+	// Stmt SC { Slist }
 	ParseTree *s = Stmt(in, line);
 	if( s == 0 )
 		return 0;
-
+	//SC { Slist }
 	if( Parser::GetNextToken(in, line) != SC ) {
 		ParseError(*line, "Missing semicolon");
 		return 0;
 	}
-
+	//{ Slist }
     return new StmtList(s, Slist(in,line));
 }
-
+// Stmt := IfStmt | PrintStmt | Expr
 ParseTree *Stmt(istream *in, int *line) {
 	ParseTree *s;
-
+	//:= IfStmt | PrintStmt | Expr
 	Token t = Parser::GetNextToken(in, line);
 	switch( t.GetTokenType() ) {
 	case IF:
@@ -110,10 +112,10 @@ ParseTree *Stmt(istream *in, int *line) {
 		return 0;
 
 	default:
-		// put back the token and then see if it's an Expr
+		// put back the token and then assume it's an Expr
 		Parser::PushBackToken(t);
 		s = Expr(in, line);
-		if( s == 0 ) {
+		if( s == 0 ) { //no right leaf, Expr
 			ParseError(*line, "Invalid statement");
 			return 0;
 		}
@@ -129,29 +131,28 @@ ParseTree *IfStmt(istream *in, int *line) {
     //assume next node is Expr
     ParseTree *ex = Expr(in, line);
 
-
+    //Expr THEN Stmt
     if (!ex) {
 		ParseError(*line, "Expected IF condition (boolean expression)");
 		return 0;
 	}
-
+	//THEN Stmt
 	Token t = Parser::GetNextToken(in, line);
-
 	if(t != THEN ) {
 		ParseError(*line, "Expected THEN after Expr");
 		return 0;
 	}
-
+	//Stmt
 	ParseTree *stmt = Stmt(in, line);
 
     return new IfStatement(*line, ex, stmt);
 }
-
+//PrintStmt := PRINT Expr
 ParseTree *PrintStmt(istream *in, int *line) {
     // ADD HANDLER
-    // if parse tree type is printstatement add it to parse tree list?
+    //:= PRINT Expr
     ParseTree *ex = Expr(in, line);
-    if(!ex) {
+    if(!ex) { //no right brach, this isn't optional
     	ParseError(*line, "Bad prt stmt");
     	return 0;
     }
@@ -181,15 +182,16 @@ ParseTree *Expr(istream *in, int *line) {
 
 	return new Assignment(t.GetLinenum(), t1, t2);
 }
-
+//LogicExpr := CompareExpr { (LOGICAND | LOGICOR) CompareExpr }
 ParseTree *LogicExpr(istream *in, int *line) {
 	ParseTree *t1 = CompareExpr(in, line);
 	if( t1 == 0 ) {
 		return 0;
 	}
+	//loop for recursion
     while (true) {
+        //{ (LOGICAND | LOGICOR) CompareExpr }
         Token t = Parser::GetNextToken(in, line);
-
         if( (t != LOGICAND) && (t != LOGICOR)) {
             Parser::PushBackToken(t);
             return t1;
@@ -197,10 +199,11 @@ ParseTree *LogicExpr(istream *in, int *line) {
 
         ParseTree *t2 = LogicExpr(in, line); // right assoc
         
-        if( t2 == 0 ) {
+        if( t2 == 0 ) { //CompareExpr is req after LOGIC[A-Z]*
             ParseError(*line, "Missing Compare");
             return 0;
         }
+        //LOGICAND | LOGICOR
         if( t == LOGICAND ) {
                 t1 = new LogicAndExpr(t.GetLinenum(), t1, t2);
         } else {
@@ -219,7 +222,7 @@ ParseTree *CompareExpr(istream *in, int *line) {
     // HANDLE OP
     while (true) {
     	Token t = Parser::GetNextToken(in, line);
-//{ (EQ | NEQ | GT | GEQ | LT | LEQ) 
+		//{ (EQ | NEQ | GT | GEQ | LT | LEQ) 
     	if(t != EQ && t != NEQ && t != LT && t != LEQ && t != GT && t != GEQ) {
     		Parser::PushBackToken(t);
     		return t1;
@@ -232,7 +235,8 @@ ParseTree *CompareExpr(istream *in, int *line) {
     		ParseError(*line, "Missing expression after operator");
     		return 0;
     	}
-    	//return right leaf Token(tt, lexeme, int)
+    	//(EQ | NEQ | GT | GEQ | LT | LEQ)
+    	//return op: Token(tt, lexeme, int)
     	switch(t.GetTokenType()) {
     		case EQ:
     			return new EqExpr(t.GetLinenum(), t1, t2);
@@ -264,7 +268,7 @@ ParseTree *AddExpr(istream *in, int *line) {
 	while ( true ) {
 		
 		Token t = Parser::GetNextToken(in, line);
-
+		//(PLUS | MINUS)
 		if( t != PLUS && t != MINUS ) {
 			Parser::PushBackToken(t);
 			return t1;
@@ -343,7 +347,38 @@ ParseTree *Primary(istream *in, int *line) {
 	Token t = Parser::GetNextToken(in, line);
     // PROCESS TOKEN, IDENTIFY PRIMARY, RETURN SOMETHING
     // IDENT | ICONST | SCONST | TRUE | FALSE | LPAREN Expr
-    if(t == IDENT){
+    switch(t.GetTokenType()) {
+    	case IDENT:
+    	{
+	    	identct++;
+	    	tempWord = t.GetLexeme();
+	    	idents[tempWord]++;
+	        return new Ident(t);
+    	}
+    	case ICONST:
+    		return new IConst(t);
+    	case SCONST:
+    		return new SConst(t);
+    	case TRUE:
+    		return new BoolConst(t, TRUE);
+    	case FALSE:
+    		return new BoolConst(t, FALSE);
+    	case LPAREN:
+    	{
+    		Token t = Parser::GetNextToken(in, line);
+			
+			if( t != RPAREN ) {
+				ParseError(t.GetLinenum(), "Syntax error right paren expected");
+				Parser::PushBackToken(t);
+				return 0;
+			} else {
+				return ex;
+			}
+    	}
+    	default:
+    		return 0; //empty branch
+    }
+    /*if(t == IDENT){
     	identct++;
     	tempWord = t.GetLexeme();
     	idents[tempWord]++;
@@ -357,9 +392,9 @@ ParseTree *Primary(istream *in, int *line) {
     } else if(t == FALSE) {
         return new BoolConst(t, FALSE);
     } else if(t == LPAREN) {
-        ParseTree *ex = Expr(in, line);
+        ParseTree *ex = Expr(in, line); //only accepts Expr
+        // Expr { RPAREN }
         Token t = Parser::GetNextToken(in, line);
-
 		if( t != RPAREN ) {
 			ParseError(t.GetLinenum(), "Syntax error right paren expected");
 			Parser::PushBackToken(t);
@@ -370,7 +405,7 @@ ParseTree *Primary(istream *in, int *line) {
 	} else {
 		ParseError(t.GetLinenum(), "Syntax error primary expected");
 	}   
-    return 0;
+    return 0; //empty branch*/
 
 }//Parsetree
 
