@@ -365,15 +365,15 @@ ParseTree *Primary(istream *in, int *line) {
     		return new BoolConst(t, FALSE);
     	case LPAREN:
     	{
-    		ParseTree *ex = Expr(in, line); //only accepts Expr
+    	    ParseTree *ex = Expr(in, line); //only accepts Expr
             Token t = Parser::GetNextToken(in, line);
 			
-			if( t != RPAREN ) {
-				ParseError(t.GetLinenum(), "Syntax error right paren expected");
-				Parser::PushBackToken(t);
-				return 0;
-			} else {
-				return ex;
+            if( t != RPAREN ) {
+                ParseError(t.GetLinenum(), "Syntax error right paren expected");
+                Parser::PushBackToken(t);
+                return 0;
+            } else {
+                return ex;
 			}
     	}
     	default:
