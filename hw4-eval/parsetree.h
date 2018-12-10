@@ -10,9 +10,9 @@
 #include "value.h"
 using std::vector;
 using std::map;
-
-extern std::map<std::string, Value> evars;
-extern void RunTimeError (string);
+//extern lets the functions be accessed outside of the parstree namespace
+extern std::map<std::string, Value> evars; //evaluated variables, [symbol list]
+extern void RunTimeError (string); //I have to genericize the linenumber later
 
 // NodeType represents all possible types
 enum NodeType { ERRTYPE, INTTYPE, STRTYPE, BOOLTYPE, IDENTTYPE };
@@ -35,8 +35,8 @@ public:
         delete left;
         delete right;
     }
-
-    virtual Value Eval() { return Value(); }
+    //one for each function. 
+    virtual Value Eval() { return Value(); } // https://www.geeksforgeeks.org/polymorphism-in-c/
 
     int GetLinenum() const { return linenum; }
 
@@ -97,7 +97,7 @@ public:
         Value results = left->Eval();
         if(results.isBoolType() == true) {
             if(results.getBoolean()) {
-                return right->Eval();  
+                return right->Eval();
             }
         } else {
             RunTimeError("if expression is not boolean typed");
@@ -304,7 +304,6 @@ public:
 
     Value Eval() {
         Value v = Value(val);
-        //std::cout << v.isBoolType() << std::endl;
         return Value(v);
     }
 };

@@ -64,7 +64,7 @@ public:
             throw "No message";
         return sval;
     }
-
+    //https://www.tutorialspoint.com/cplusplus/cpp_friend_functions.htm
     friend ostream& operator<<(ostream& out, const Value& v) {
         if( v.type == VT::isBool ) out << (v.bval ? "True" : "False");
         else if( v.type == VT::isInt ) out << v.ival;
@@ -77,12 +77,12 @@ public:
     //Operator +
     Value operator+(const Value& v) {
         if(this->isIntType() && v.isIntType()) {
-          int response = this->getInteger() + v.getInteger();
-          return response;
+          int result = this->getInteger() + v.getInteger();
+          return result;
         }
         if(this->isStringType() && v.isStringType()) {
-            string responser = this->getString() + v.getString();
-            return responser;
+            string result = this->getString() + v.getString();
+            return result;
         } else {
             RunTimeError("Cannot add these two values");
             return Value();
@@ -91,12 +91,12 @@ public:
 
     Value operator-(const Value& v) {
         if(this->isIntType() && v.isIntType()) {
-          int response = this->getInteger() - v.getInteger();
-          return response;
+          int result = this->getInteger() - v.getInteger();
+          return result;
         }
         if(this->isStringType() && v.isStringType()) {
-            string responser = this->getString() + v.getString();
-            return responser;
+            string result = this->getString() + v.getString();
+            return result;
         } else {
             RunTimeError("Cannot subtract these two values");
             return Value();
@@ -136,15 +136,13 @@ public:
         //hellohello
         else if(this->isStringType() && v.isIntType()) {
             /*
-            multstring by a positive number
-            e.g. hello*2 and not hello*-2
-            If its positive, loop and add it to a string
+            multstring by a positive number: hello*2 exclude hello*-2
             */
-            if(v.getInteger() >= 0) {
+            if(v.getInteger() >= 0) {//block -ints from strings
                 string addexpr = "";
                 for(int i = 0; i < v.getInteger(); i++)
                 {
-                 addexpr = addexpr + this->getString();
+                 addexpr = addexpr + this->getString();//
                 }
                 return addexpr;
             } else {
@@ -153,13 +151,13 @@ public:
             }
         } else if(this->isIntType() && v.isBoolType()) {
             if(ival == -1) {
-                return Value(false);
+                bool result = !v.getBoolean(); //- flips booleans
+                return Value(result);
             } 
             if(ival == 1) {
-                //bool response = !v.getBoolean();
                 return Value(true);
             }
-        } else {
+         } else {
             RunTimeError("Cannot multiply these two values");
             return Value();
         }
@@ -167,9 +165,12 @@ public:
     }
 
     Value operator/(const Value& v) {
-        if(this->isIntType() && v.isIntType()) {
-          int response = this->getInteger() / v.getInteger();
-          return Value(response);
+        if(v.isIntType() && v.getInteger() == 0) {
+            RunTimeError("Division by 0"); //catch 0 divisions
+            return Value();
+        } else if(this->isIntType() && v.isIntType()) {
+            int result = this->getInteger() / v.getInteger();
+            return Value(result);
         } else {
             RunTimeError("Cannot divide these two values");
             return Value();
@@ -178,11 +179,11 @@ public:
 
     Value operator<(const Value& v) {
         if(this->isIntType() && v.isIntType()) {
-            bool response = this->getInteger() < v.getInteger();
-            return response;
+            bool result = this->getInteger() < v.getInteger();
+            return result;
         } else if (this->isStringType() && v.isStringType()) {
-            bool response = this->getString() < v.getString();
-            return response;
+            bool result = this->getString() < v.getString();
+            return result;
         } else {
             RunTimeError("Type mismatch in <");
             return Value();
@@ -191,11 +192,11 @@ public:
 
     Value operator<=(const Value& v) {
         if(this->isIntType() && v.isIntType()) {
-            bool response = this->getInteger() <= v.getInteger();
-            return response;
+            bool result = this->getInteger() <= v.getInteger();
+            return result;
         } else if(this->isStringType() && v.isStringType()) {
-            bool response = this->getString() <= v.getString();
-            return response;  
+            bool result = this->getString() <= v.getString();
+            return result;  
         } else {
             RunTimeError("Type mismatch in <=");
             return Value();
@@ -204,11 +205,11 @@ public:
 
     Value operator>(const Value& v) {
         if(this->isIntType() && v.isIntType()) {
-            bool response = this->getInteger() > v.getInteger();
-            return response;
+            bool result = this->getInteger() > v.getInteger();
+            return result;
         } else if(this->isStringType() && v.isStringType()) {
-            bool response = this->getString() > v.getString();
-            return response;  
+            bool result = this->getString() > v.getString();
+            return result;  
         } else {
             RunTimeError("Type mismatch in >");
             return Value();
@@ -217,11 +218,11 @@ public:
 
     Value operator>=(const Value& v) {
          if(this->isIntType() && v.isIntType()) {
-            bool response = this->getInteger() >= v.getInteger();
-            return response;
+            bool result = this->getInteger() >= v.getInteger();
+            return result;
         } else if(this->isStringType() && v.isStringType()) {
-            bool response = this->getString() >= v.getString();
-            return response;  
+            bool result = this->getString() >= v.getString();
+            return result;  
         } else {
             RunTimeError("Type mismatch in >=");
             return Value();  
@@ -243,19 +244,6 @@ public:
             return Value();    
         }
     }
-
-    /*Value operator!=(const Value& v) {
-        if(this->isIntType() && v.isIntType()) {
-            return Value(this->getInteger() != v.getInteger());
-        } else if (this->isStringType() && v.isStringType()) {
-            return Value(this->getString() != v.getString());
-        } else if (this->isBoolType() && v.isBoolType()) {
-            return Value(this->getBoolean() != v.getBoolean());
-        } else {
-            RunTimeError("Type mismatch in !=");
-            return Value();
-       }
-   }*/
 
     Value operator!=(const Value& v) {
         Value ans = this->operator==(v);
