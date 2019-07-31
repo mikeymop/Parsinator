@@ -1,4 +1,4 @@
-# cs280
+# Parsinator (cs280)
 
 Parsinator is a compiler for a simple scripting language. It supports strings, integers, comments and arithmetic. It includes it's own grammer, lexer, and parser.
 
